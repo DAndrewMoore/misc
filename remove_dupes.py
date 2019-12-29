@@ -122,7 +122,7 @@ def remove_dupes(all_dupes, do_del):
                 try:
                     os.remove(cur_dupe)
                 except FileNotFoundError:
-                    print(f"\t\tCouldn't find duplicate file: {cur_dupe}", file=sys.stderr, flush=True)
+                    print(f"\t\t[!] Couldn't find duplicate file: {cur_dupe}")
 
 def main(base_path, recursive=True, verify_hash=False, do_del=False):
     print("Checking:", base_path)
@@ -137,7 +137,7 @@ def main(base_path, recursive=True, verify_hash=False, do_del=False):
         dirs = [os.path.join(base_path, d) for d in os.listdir(base_path) if os.path.isdir(os.path.join(base_path, d))]
         if len(dirs):
             for cd in dirs:
-                main(cd)
+                main(cd, recursive=recursive, verify_hash=verify_hash, do_del=do_del)
 
 def parse_cla():
     """
@@ -153,6 +153,7 @@ def parse_cla():
     parser.add_argument('--recursive', action='store_true', default=False, help='Recursively search directories for files to remove')
     parser.add_argument('--verify', action='store_true', default=False, help='Verify file hashes between original file and duplicates')
     parser.add_argument('--run', action='store_true', default=False, help="Run the script and remove files, otherwise the script will only print potential removals to stdout")
+    parser.add_argument('--skip_check', action='store_true', default=False, help='Flag to skip pause before continuing execution, useful during testing')
 
     return parser.parse_args()
 
@@ -181,7 +182,8 @@ def do_verify(do_del):
 if __name__ == "__main__":
     opt = parse_cla()
     
-    do_verify(opt.run)
+    if not opt.skip_check:
+        do_verify(opt.run)
 
     main(base_path=opt.base_path, recursive=opt.recursive, verify_hash=opt.verify, do_del=opt.run)
     
